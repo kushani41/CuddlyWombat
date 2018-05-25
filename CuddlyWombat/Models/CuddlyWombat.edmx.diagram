@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="083bcd6097bc43e09095c47fd0dc9b42" Name="Diagram1" ZoomLevel="56">
+        <EntityTypeShape EntityType="CuddlyWombatModel.Customer" Width="1.5" PointX="0.75" PointY="4.625" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.Menu" Width="1.5" PointX="13" PointY="2" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.MenuItem" Width="1.5" PointX="7" PointY="1.375" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.MenuType" Width="1.5" PointX="10.75" PointY="2.5" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.OrderMenuItem" Width="1.5" PointX="6.875" PointY="5" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.OrderStatu" Width="1.5" PointX="3.75" PointY="11.125" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.OrderType" Width="1.5" PointX="9.5" PointY="10.75" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.Reservation" Width="1.5" PointX="3" PointY="4.625" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.ReservationHistory" Width="1.5" PointX="10.75" PointY="5.875" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.ReservationStatu" Width="1.5" PointX="0.75" PointY="2.25" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.Table" Width="1.5" PointX="3.75" PointY="13.5" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.User" Width="1.5" PointX="17.25" PointY="5.875" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.UserType" Width="1.5" PointX="15" PointY="6" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_Reservation_Customer" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_Menu_MenuType" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_OrderMenuItems_MenuItem" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_Reservation_ReservationStatus" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_User_UserType" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.MenuMenuItem" Width="1.5" PointX="15.25" PointY="2.5" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_MenuMenuItems_Menu" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.Order" Width="1.5" PointX="11.75" PointY="9.875" />
+        <EntityTypeShape EntityType="CuddlyWombatModel.OrderHistory" Width="1.5" PointX="6.375" PointY="7.75" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_Order_Customer" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_Order_OrderStatus" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_Order_OrderType" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_Order_Table" />
+        <AssociationConnector Association="CuddlyWombatModel.FK_OrderMenuItems_Order" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

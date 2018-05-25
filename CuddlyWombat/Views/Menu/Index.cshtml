@@ -1,0 +1,394 @@
+﻿
+@{
+    ViewBag.Title = "Menu";
+}
+
+<link href="~/Scripts/Thirdparty/DataTables/datatables.min.css" rel="stylesheet" />
+<link href="~/Scripts/Thirdparty/DataTables/DataTables-1.10.16/css/dataTables.bootstrap.css" rel="stylesheet" />
+
+<h2>Menu</h2>
+
+<div class="col-12">
+    <div class="row">
+        <button id="newMenubtn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#mdlMenu">Create new Menu</button>
+        <button id="newMenuItembtn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#mdlMenuItem">Create new Menu Item</button>
+    </div><br />
+    <div class="row">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Menus</div>
+            <div class="panel-body">
+                <table id="tblMenu">
+                    <thead>
+                        <tr>
+                            @*<td>Action</td>*@
+                            <td>Name</td>
+                            <td>Description</td>
+                            <td>Menu Type</td>
+                            <td>Date Created</td>
+
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div><br />
+    <div class="row">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Menu Items</div>
+            <div class="panel-body">
+                <table id="tblMenuItem">
+                    <thead>
+                        <tr>
+                            @*<td>Action</td>*@
+                            <td>Name</td>
+                            <td>Description</td>
+                            <td>Price</td>
+                            <td>Preparation Time (minutes)</td>
+                            <td>Date Created</td>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="mdlMenuItem">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Menu Item</h3>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" name="name" id="name" required="required" class="form-control input-sm" value="">
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text" name="description" id="description" required="required" class="form-control input-sm" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input type="text" name="price" id="price" required="required" class="form-control input-sm" value="">
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="description">Preparation Time (minutes)</label>
+                            <input type="number" name="preparationTime" id="preparationTime" required="required" class="form-control input-sm" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-sm-12 col-md-6">
+                        <button type="button" class="btn btn-success btn-block">Save</button>
+                    </div>
+                    <div class="col-sm-12 col-sm-12 col-md-6">
+                        <button type="button" class="btn btn-warning btn-block" data-dismiss="modal" aria-label="Close">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"></div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" tabindex="-1" role="dialog" id="mdlMenu">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Menu</h3>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" name="name" id="name" required="required" class="form-control input-sm" value="">
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text" name="description" id="description" required="required" class="form-control input-sm" value="">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 col-sm-6 col-md-6">
+                        <div class="form-group">
+                            <label for="menutype">Menu Type</label>
+                            <select name="menutype" id="menutype" required="required" class="form-control"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 col-sm-12 col-md-12" id="menuItems" style="display:none;">
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-sm-12 col-md-6">
+                        <button type="button" class="btn btn-success btn-block">Save</button>
+                    </div>
+                    <div class="col-sm-12 col-sm-12 col-md-6">
+                        <button type="button" class="btn btn-warning btn-block" data-dismiss="modal" aria-label="Close">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"></div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script src="~/Scripts/Thirdparty/DataTables/datatables.min.js"></script>
+<script src="~/Scripts/Thirdparty/DataTables/DataTables-1.10.16/js/dataTables.bootstrap.js"></script>
+<script src="~/Scripts/Underscore.min.js"></script>
+<script>
+    var menuTypes = [];
+    var allMenuItems = [];
+    var selectedMenuItemID = 0;
+    var selectedMenuID = 0;
+    var selectedMenuItems = [];
+
+    $(document).ready(function () {
+        $('#newMenubtn').on('click', function () {
+            selectedMenuID = 0;
+        });
+
+        $('#newMenuItembtn').on('click', function () {
+            selectedMenuItemID = 0;
+        });
+
+        $('#mdlMenuItem .btn-success').on('click', function () {
+            var request = {
+                MenuItemID: selectedMenuItemID,
+                Name: $('#mdlMenuItem #name').val(),
+                Description: $('#mdlMenuItem #description').val(),
+                Price: $('#mdlMenuItem #price').val(),
+                PreparationTimeInMinutes: $('#mdlMenuItem #preparationTime').val(),
+            };
+
+            console.log(request);
+
+            if (request.Name == "" || request.PreparationTimeInMinutes == "" || request.Price == "") {
+                notie.alert({ text: "Please enter correct input values.", type: 2 });
+                return;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "/API/Menu/CreateNewMenuItem/",
+                data: { '': JSON.stringify(request) },
+                dataType: "json",
+                success: function (msg) {
+                    var data = JSON.parse(msg);
+                    showAjaxMessage(data.MessageString, data.MessageStatusID);
+                    populateMenuItems(data.MenuItems);
+                    $('#mdlMenuItem').modal('hide');
+                }
+            });
+        });
+
+        $('#mdlMenu .btn-success').on('click', function () {
+            selectedMenuItems = [];
+
+            $("input:checkbox[name=menuItemCheck]:checked").each(function () {
+                selectedMenuItems.push($(this).data().menuitemid);
+            });
+
+            console.log(selectedMenuItems);
+            //return;
+
+            var request = {
+                MenuID: selectedMenuID,
+                Name: $('#mdlMenu #name').val(),
+                Description: $('#mdlMenu #description').val(),
+                MenuTypeID: $('#mdlMenu #menutype').val(),
+                MenuItemIDs: selectedMenuItems
+            };
+
+            console.log(request);
+
+            $.ajax({
+                type: "POST",
+                url: "/API/Menu/CreateNewMenu/",
+                data: { '': JSON.stringify(request) },
+                dataType: "json",
+                success: function (msg) {
+                    var data = JSON.parse(msg);
+                    showAjaxMessage(data.MessageString, data.MessageStatusID);
+
+                    console.log(data.Menus);
+                    populateMenus(data.Menus);
+
+                    $('#mdlMenu').modal('hide');
+                },
+                error: function (data) {
+                    console.log(data);
+                },
+            });
+        });
+
+        $.ajax({
+            type: "GET",
+            url: "/API/Menu/GetAllMenusNMenuItems/",
+            dataType: "json",
+            success: function (data) {
+                data = JSON.parse(data);
+                console.log(data);
+                populateMenuItems(data.MenuItems);
+                populateMenus(data.Menus);
+
+                menuTypes = data.MenuTypes;
+                allMenuItems = data.MenuItems;
+            }
+        });
+
+        $("#mdlMenu").on('show.bs.modal', function () {
+            populateMenuTypeList(menuTypes);
+            populateAllMenuItemCheckBoxes();
+        });
+
+        $("#mdlMenu").on('hide.bs.modal', function () {
+            $('#menuItems').empty().hide();
+        });
+
+
+    });
+
+    function populateMenuTypeList(menuTypes) {
+        var select = $('#mdlMenu #menutype').empty();
+        _.each(menuTypes, function (m) {
+            $('<option value="' + m.MenuTypeID + '">' + m.Name + '</option>').appendTo(select);
+        });
+
+    };
+
+    function populateMenuItems(menuItems) {
+        var table = $('#tblMenuItem').DataTable({
+            data: menuItems,
+            columns: [
+                //{
+                //    data: "MenuItemID",
+                //    title: "Action"
+                //},
+                {
+                    data: "Name",
+                    title: "Name"
+                },
+                {
+                    data: "Description",
+                    title: "Description"
+                },
+                {
+                    data: "Price",
+                    title: "Price ($)"
+                },
+                {
+                    data: "PreparationTimeInMinutes",
+                    title: "Preparation Time (minutes)"
+                },
+                {
+                    data: "DateCreated",
+                    title: "Date Created",
+                    render: function (data) {
+                        return '<span>' + moment(data).format('DD/MM/YYYY') + '</span>';
+                    },
+                },
+            ],
+            destroy: true,
+        });
+
+        $('#tblMenuItem tr').css('cursor', 'pointer');
+
+        $('#tblMenuItem tbody').on('click', 'tr', function () {
+            var rowData = table.row(this).data();
+
+            selectedMenuItemID = rowData.MenuItemID;
+
+            $('#mdlMenuItem').modal();
+            $('#mdlMenuItem #name').val(rowData.Name);
+            $('#mdlMenuItem #description').val(rowData.Description);
+            $('#mdlMenuItem #price').val(rowData.Price);
+            $('#mdlMenuItem #preparationTime').val(rowData.PreparationTimeInMinutes);
+        });
+
+    }
+
+    function populateMenus(menus) {
+        var table = $('#tblMenu').DataTable({
+            data: menus,
+            columns: [
+                //{
+                //    data: "MenuID",
+                //    title: "Action"
+                //},
+                {
+                    data: "Name",
+                    title: "Name"
+                },
+                {
+                    data: "Description",
+                    title: "Description"
+                },
+                {
+                    data: "MenuType.Name",
+                    title: "Menu Type"
+                },
+                {
+                    data: "DateCreated",
+                    title: "Date Created",
+                    render: function (data) {
+                        return '<span>' + moment(data).format('DD/MM/YYYY') + '</span>';
+                    },
+                },
+
+            ],
+            destroy: true,
+        });
+
+        $('#tblMenu tr').css('cursor', 'pointer');
+
+        $('#tblMenu tbody').on('click', 'tr', function () {
+            var rowData = table.row(this).data();
+
+            selectedMenuID = rowData.MenuID;
+
+            $('#mdlMenu').modal();
+            $('#mdlMenu #name').val(rowData.Name);
+            $('#mdlMenu #description').val(rowData.Description);
+            $('#mdlMenu #menutype').val(rowData.MenuTypeID);
+
+
+            var assignedMenuItems = rowData.MenuItems;
+
+            populateAllMenuItemCheckBoxes();
+
+            _.each(assignedMenuItems, function (m) {
+                $('#chkMenuItem_' + m.MenuItemID).prop('checked', true);
+            });
+
+        });
+
+    }
+
+    function populateAllMenuItemCheckBoxes() {
+        $('#menuItems').empty().show();
+        _.each(allMenuItems, function (m) {
+            $('<div class="form-check"><input data-menuitemid="' + m.MenuItemID + '" name="menuItemCheck" type="checkbox" class="form-check-input menu-item-check" id="chkMenuItem_'
+                + m.MenuItemID + '"><label class="form-check-label" for="chkMenuItem_'
+                + m.MenuItemID + '">' + m.Name + '</label></div>').appendTo($('#menuItems'));
+        });
+    }
+
+</script>

@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="CuddlyWombat.Service.ReservationService" CodeBehind="ReservationService.svc.cs" %>

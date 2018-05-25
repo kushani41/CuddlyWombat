@@ -1,0 +1,242 @@
+﻿@using Microsoft.AspNet.Identity;
+@using System.Security.Claims;
+
+@{
+    ViewBag.Title = "Reservations";
+    var userID = ViewBag.UserID;
+    var isInternalUser = ViewBag.IsInternalUser;
+}
+
+<link href="~/Scripts/Thirdparty/DataTables/datatables.min.css" rel="stylesheet" />
+<link href="~/Scripts/Thirdparty/DataTables/DataTables-1.10.16/css/dataTables.bootstrap.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-datetimepicker.min.css" rel="stylesheet" />
+
+<h2>Reservations</h2>
+<div class="container">
+    <div class="row create-new-reservation" style="display:none;">
+        <div class="form-group col-md-3" style="padding-left: 0;">
+            <div class="input-group">
+                <span class="input-group-addon">Number of Tables</span>
+                <input autofocus="" class="form-control" id="numberOfTables" name="numberOfTables" type="number" value="1">
+            </div>
+        </div>
+        <div class='col-sm-2 col-md-2'>
+            <div class="form-group">
+                <div class='input-group date' id='datetimepicker'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-1">
+            <button id="btnNewReservation" type="button" class="btn btn-primary">Create new Reservation</button>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="panel panel-primary">
+            <div class="panel-heading">Reservations</div>
+            <div class="panel-body">
+                <table id="tblReservation">
+                    <thead>
+                        <tr>
+                            <td>Name</td>
+                            <td>Number of Tables</td>
+                            <td>Date</td>
+                            <td>Reservation Status</td>
+                            <td>Action</td>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div><br />
+</div>
+
+<script src="~/Scripts/Thirdparty/DataTables/datatables.min.js"></script>
+<script src="~/Scripts/Thirdparty/DataTables/DataTables-1.10.16/js/dataTables.bootstrap.js"></script>
+<script src="~/Scripts/Underscore.min.js"></script>
+<script src="~/Scripts/bootstrap-datetimepicker.min.js"></script>
+<script src="~/Scripts/moment.min.js"></script>
+
+<script>
+    var loggedInUserID = @userID;
+    var isInternalUser = JSON.parse(@isInternalUser);
+
+    $(document).ready(function () {
+        if (isInternalUser) {
+            $('.create-new-reservation').hide();
+        }
+        else {
+            $('.create-new-reservation').show();
+        }
+
+        $('#datetimepicker').datetimepicker({
+            format: 'YYYY-MM-DD',
+            date: moment()
+        });
+
+        getAllReservations();
+
+        $('#btnNewReservation').on('click', function (e) {
+            e.preventDefault();
+            var selectedDate = $('#datetimepicker').data().date;
+
+            if ($('#numberOfTables').val() < 1) {
+                notie.alert({ text: "Please enter a valid number of Tables", type: eMessageStatus.Fail });
+                return;
+            }
+
+            if (selectedDate === undefined || selectedDate == "") {
+                notie.alert({ text: "Please select a date", type: eMessageStatus.Fail });
+                return;
+            }
+
+            var reservation = {
+                ReservationID: 0,
+                CustomerID: loggedInUserID,
+                ReservationStatusID: 1, //pending
+                ReservationDate: selectedDate,
+                NumberOfTables: $('#numberOfTables').val()
+            };
+
+            var request = {
+                Reservation: reservation
+            };
+
+            console.log(request);
+            $.ajax({
+                type: "POST",
+                url: "/API/Reservation/CreateNewReservation/",
+                data: { '': JSON.stringify(request) },
+                dataType: "json",
+                success: function (msg) {
+                    var data = JSON.parse(msg);
+
+                    showAjaxMessage(data.MessageString ,data.MessageStatusID);
+
+                    getAllReservations();
+                },
+                error: function (data) {
+                    console.log(data);
+                },
+            });
+        });
+    });
+
+    function getAllReservations() {
+        $.ajax({
+            type: "GET",
+            url: "/API/Reservation/GetAllReservations/",
+            dataType: "json",
+            success: function (data) {
+                data = JSON.parse(data);
+                console.log(data);
+                populateReservations(data.Reservations);
+            }
+        });
+    };
+
+    function populateReservations(reservations) {
+        var table = $('#tblReservation').DataTable({
+            data: reservations,
+            columns: [
+                {
+                    data: "Customer",
+                    title: "Name",
+                    render: function (data) {
+                        return '<span>' + data.GivenName + ' ' + data.Surname + '</span>';
+                    },
+                },
+                {
+                    data: "NumberOfTables",
+                    title: "Number Of Tables"
+                },
+                {
+                    data: "ReservationDate",
+                    title: "Date",
+                    render: function (data) {
+                        return '<span>' + moment(data).format('DD/MM/YYYY') + '</span>';
+                    },
+                },
+                {
+                    data: "ReservationStatu.Name",
+                    title: "Status"
+                },
+                {
+                    data: "ReservationID",
+                    title: "Action",
+                    render: function (data, type, row, meta) {
+                        var reservationStatusID = row.ReservationStatusID;
+                        switch (reservationStatusID) {
+                            case eReservationStatus.Canceled:
+                            case eReservationStatus.Completed:
+                                return "<span></span>";
+                                break;
+                            case eReservationStatus.Pending:
+                                if (isInternalUser) {
+                                    return '<a class="btn btn-danger cancel-reservation" data-reservationid="' + data + '" style="margin-right:5px;"><span class="glyphicon glyphicon-remove"></span></a>' +
+                                        '<a class="btn btn-success complete-reservation" data-reservationid="' + data + '"><span class="glyphicon glyphicon-ok"></span></a>';
+                                }
+                                else {
+                                    return '<a class="btn btn-danger cancel-reservation" data-reservationid="' + data + '" style="margin-right:5px;"><span class="glyphicon glyphicon-remove"></span></a>';
+                                }
+                                break;
+                            default:
+                                return "<span></span>";
+                        }
+                    }
+                },
+            ],
+            destroy: true,
+        });
+
+        $('#tblReservation tbody').on('click', 'a.cancel-reservation', function () {
+            var closestRow = $(this).closest('tr');
+            var rowData = table.row(closestRow).data();
+
+            console.log("cancel", rowData);
+
+            var request = {
+                ReservationID: rowData.ReservationID,
+                ReservationStatusID: eReservationStatus.Canceled
+            };
+            updateReservation(request);
+        });
+
+        $('#tblReservation tbody').on('click', 'a.complete-reservation', function () {
+            var closestRow = $(this).closest('tr');
+            var rowData = table.row(closestRow).data();
+
+            console.log("complete", rowData);
+
+            var request = {
+                ReservationID: rowData.ReservationID,
+                ReservationStatusID: eReservationStatus.Completed
+            };
+            updateReservation(request);
+        });
+    }
+
+    function updateReservation(request) {
+        $.ajax({
+            type: "POST",
+            url: "/API/Reservation/UpdateReservationStatus/",
+            data: { '': JSON.stringify(request) },
+            dataType: "json",
+            success: function (msg) {
+                var data = JSON.parse(msg);
+                showAjaxMessage(data.MessageString, data.MessageStatusID);
+
+                getAllReservations();
+
+                $('#mdlMenu').modal('hide');
+            },
+            error: function (data) {
+                console.log(data);
+            },
+        });
+    }
+</script>

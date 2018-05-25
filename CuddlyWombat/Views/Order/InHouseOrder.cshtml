@@ -1,0 +1,323 @@
+﻿
+@{
+    ViewBag.Title = "InHouseOrder";
+}
+
+<link href="~/Content/order/main.css" rel="stylesheet" />
+<style>
+    .modal-dialog {
+        width: 1000px !important;
+    }
+</style>
+
+<h2>In House Order</h2>
+
+<div class="row">
+    <div class="form-group">
+        <div class="input-group multi-control-group">
+            <span class="input-group-addon first-addon">Table NO</span>
+            <input id="tableNO" type="number" class="form-control">
+        </div>
+    </div>
+</div>
+
+<div class="row" id="allMenus">
+    <a href="#" class="btn btn-default" data-toggle="modal" data-target="#mdlMenuItems">The Button</a>
+</div>
+<br />
+<div class="row">
+    <p>My Order</p>
+    <table class="table" id="tblOrder">
+        <thead>
+            <tr>
+                <td>Item</td>
+                <td>Quntity</td>
+                <td>Unit Price</td>
+                <td>Total Price</td>
+                <td>Remove</td>
+            </tr>
+        </thead>
+    </table>
+    <div class="totalPrice">
+        <div class="form-group">
+            <label for="">Total</label>
+            <div class="input-group multi-control-group">
+                <span class="input-group-addon first-addon">$</span>
+                <input type="text" class="form-control" readonly>
+            </div>
+        </div>
+    </div>
+    <button id="btnSendToKitchen" type="button" class="btn btn-success">Send to Kitchen</button>
+</div>
+
+<div class="modal fade" id="mdlMenuItems" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">Select Order Items</h4>
+            </div>
+            <div class="modal-body" id="menuItems">
+                <div class="form-group">
+                    <input type="checkbox" name="fancy-checkbox-default" id="fancy-checkbox-default" autocomplete="off" />
+                    <div class="btn-group">
+                        <label for="fancy-checkbox-default" class="btn btn-default">
+                            <span class="glyphicon glyphicon-ok"></span>
+                            <span> </span>
+                        </label>
+                        <label for="fancy-checkbox-default" class="btn btn-default active">
+                            dsdsdsd
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Done</button>
+                @*<button type="button" class="btn btn-primary">Save changes</button>*@
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+
+
+<script>
+    var menuTypes = [];
+    var allMenus = [];
+    var selectedMenuID = 0;
+
+    var orderList = [];
+    var finalOrderTotal = 0;
+
+    //var eOrderStatus = {
+    //    Pending: 1,
+    //    Canceled: 2,
+    //    Completed: 3
+    //};
+
+    //var eOrderType = {
+    //    Phone: 1,
+    //    Online: 2,
+    //    OnSite: 3
+    //};
+
+    $(document).ready(function () {
+        $.ajax({
+            type: "GET",
+            url: "/API/Order/GetAllMenuDetails/",
+            dataType: "json",
+            success: function (data) {
+                data = JSON.parse(data);
+                console.log(data);
+
+                menuTypes = data.MenuTypes;
+                allMenus = data.Menus;
+
+                populateAllMenus(allMenus);
+            }
+        });
+
+        $("#mdlMenuItems").on('show.bs.modal', function (e) {
+            populateAllMenuItemCheckBoxes();
+            $(".modal input:checkbox").on('change', function () {
+                var menuitemid = $(this).data().menuitemid;
+                $('#tboxQunity_' + menuitemid).attr('disabled', !this.checked);
+                $('#btnOrder_' + menuitemid).attr('disabled', !this.checked);
+            });
+
+            $('.btn-add-to-order').on('click', function (e) {
+                e.preventDefault();
+                var menuitemid = $(this).data().menuitemid;
+
+                var addedOrder = _.findWhere(orderList, { menuid: selectedMenuID, menuitemid: menuitemid });
+
+                if (addedOrder != undefined) {
+                    addedOrder.quntity = parseInt($('#tboxQunity_' + menuitemid).val());
+                }
+                else {
+                    var order = {
+                        name: $(this).data().name,
+                        menuid: selectedMenuID,
+                        menuitemid: menuitemid,
+                        quntity: parseInt($('#tboxQunity_' + menuitemid).val()),
+                        price: $(this).data().price,
+                        time: $(this).data().time,
+                    };
+
+                    orderList.push(order);
+                }
+                notie.alert({ text: "Item added to your Order" });
+            });
+        });
+
+        $("#mdlMenuItems").on('hide.bs.modal', function () {
+            console.log(orderList);
+            populateCustomerOrder();
+        });
+
+        $('#btnSendToKitchen').on('click', function (e) {
+            if (orderList.length <= 0) {
+                notie.alert({ text: "Please select Order Items", type: 2 });
+                return;
+            }
+            if ($('#tableNO').val() == "") {
+                notie.alert({ text: "Please enter the Table NO", type: 2 });
+                return;
+            }
+
+            var newOrder = {
+                OrderID: 0,
+                TableID: $('#tableNO').val(),
+                CustomerID: null,
+                OrderTypeID: eOrderType.OnSite,
+                OrderStatusID: eOrderStatus.Pending,
+                TotalPrice: finalOrderTotal,
+                PickUpTime: null,
+                IsPaid: true,
+                DateCreated: moment(),
+                DateModifies: null,
+                TotalPreparationTimeInMinutes: 0
+            };
+
+            var newOrderItems = [];
+            var totalTime = 0;
+
+            _.each(orderList, function (o) {
+                var OrderMenuItem = {
+                    OrderID: 0,
+                    MenuItemID: o.menuitemid,
+                    Quntity: o.quntity
+                };
+                if (o.quntity > 3) {
+                    totalTime = totalTime + (o.quntity * o.time);
+                }
+                else {
+                    totalTime = totalTime + o.time;
+                }
+                newOrderItems.push(OrderMenuItem);
+            });
+
+            newOrder.TotalPreparationTimeInMinutes = totalTime;
+
+            var request = {
+                Order: newOrder,
+                OrderMenuItems: newOrderItems
+            };
+
+            console.log(request);
+
+
+            $.ajax({
+                type: "POST",
+                url: "/API/Order/CreateNewOrder/",
+                data: { '': JSON.stringify(request) },
+                dataType: "json",
+                success: function (msg) {
+                    var data = JSON.parse(msg);
+                    showAjaxMessage(data.MessageString, data.MessageStatusID);
+                }
+            });
+        });
+    });
+
+    function populateAllMenus(menus) {
+        var allMenuDiv = $('#allMenus').empty();
+
+        _.each(menus, function (m) {
+            var menuButton = $('<a href="#" class="btn btn-info" data-toggle="modal" data-target="#mdlMenuItems" data-menuid="' + m.MenuID +
+                '" style="margin-right:10px;">' + m.Name + '</a>').on('click', function (e) {
+                    e.preventDefault();
+                    selectedMenuID = $(this).data().menuid;
+                });
+            menuButton.appendTo(allMenuDiv);
+        });
+    };
+
+    function populateAllMenuItemCheckBoxes() {
+        var menuItemList = $('#menuItems').empty().show();
+
+        var selectedMenu = _.findWhere(allMenus, { MenuID: selectedMenuID });
+
+        _.each(selectedMenu.MenuItems, function (m) {
+            //$('<div class="form-check"><input data-menuitemid="' + m.MenuItemID + '" name="menuItemCheck" type="checkbox" class="form-check-input menu-item-check" id="chkMenuItem_'
+            //    + m.MenuItemID + '"><label class="form-check-label" for="chkMenuItem_'
+            //    + m.MenuItemID + '">' + m.Name + '</label></div>').appendTo(menuItemList);
+
+            $('<div class="row">' +
+                '<div class="col-md-4">' +
+                '<div class="form-group">' +
+                '<input data-menuitemid="' + m.MenuItemID + '" type="checkbox" class="menu-item-check" name="menuItemCheck" autocomplete="off"' +
+                ' id="chkMenuItem_' + m.MenuItemID + '" />' +
+                '<div class="btn-group">' +
+                '<label for="chkMenuItem_' + m.MenuItemID + '" class= "btn btn-default"> ' +
+                '<span class="glyphicon glyphicon-ok"></span> ' +
+                '<span></span>' +
+                '</label> ' +
+                '<label for="chkMenuItem_' + m.MenuItemID + '" class="btn btn-default active">' + m.Name + '- $' + m.Price + '</label>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-md-5">' +
+                '<div class="input-group">' +
+                '<span class="input-group-addon"><label for="tboxQunity_' + m.MenuItemID + '">Quntity</label></span>' +
+                '<input value="0" type="text" id="tboxQunity_' + m.MenuItemID + '" class="form-control" disabled="disabled">' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-md-2">' +
+                '<button data-name="' + m.Name + '" data-menuitemid="' + m.MenuItemID + '" data-price="' + m.Price + '" data-time="' + m.PreparationTimeInMinutes + '" type="button" id="btnOrder_' + m.MenuItemID
+                + '" class="btn btn-primary btn-add-to-order" disabled="disabled">Add to Order</button>' +
+                '</div>' +
+                '</div>').appendTo(menuItemList);
+
+        });
+    };
+
+    function populateCustomerOrder() {
+        var totalPrice = 0;
+        var table = $('#tblOrder').empty();
+
+        var thead = $('<thead></thead>');
+        var tr = $('<tr></tr>');
+        var td = $('<td></td>');
+
+        $('<td></td>').text("Item").appendTo(tr);
+        $('<td></td>').text("Quntity").appendTo(tr);
+        $('<td></td>').text("Unit Price").appendTo(tr);
+        $('<td></td>').text("Total Price").appendTo(tr);
+        $('<td></td>').text("Remove").appendTo(tr);
+
+        tr.appendTo(thead);
+        thead.appendTo(table);
+
+        _.each(orderList, function (o) {
+            tr = $('<tr></tr>');
+            $('<td></td>').text(o.name).appendTo(tr);
+            $('<td></td>').text(o.quntity).appendTo(tr);
+            $('<td></td>').text(o.price).appendTo(tr);
+            $('<td></td>').text(o.price * o.quntity).appendTo(tr);
+            //$('<td></td>').text("Remove").appendTo(tr);
+
+            var td = $('<td></td>');
+            var btnRemoveOrderItem = $('<button data-menuitemid="' + o.menuitemid + '" data-menuid="' + o.menuid +
+                '" type="button" id="btnRemoveOrder_' + o.menuid + '_' + o.menuitemid +
+                '" class="btn btn-warning btn-add-to-order">Remove</button>').on('click', function (e) {
+                    var orderToRemove = _.findWhere(orderList, { menuid: o.menuid, menuitemid: o.menuitemid });
+
+                    if (orderToRemove != undefined) {
+                        orderList = _.without(orderList, o);
+                        populateCustomerOrder();
+                    }
+                    else {
+                        alert('Oops!');
+                    }
+                });
+            btnRemoveOrderItem.appendTo(td);
+            td.appendTo(tr);
+            tr.appendTo(table);
+            totalPrice = (totalPrice + (o.price * o.quntity));
+        });
+
+        $('.totalPrice input').val(totalPrice);
+        finalOrderTotal = totalPrice;
+    };
+</script>

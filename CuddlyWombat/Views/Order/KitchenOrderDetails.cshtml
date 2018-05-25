@@ -1,0 +1,198 @@
+﻿@{
+    ViewBag.Title = "KitchenOrderDetails";
+}
+
+<link href="~/Scripts/Thirdparty/DataTables/datatables.min.css" rel="stylesheet" />
+<link href="~/Scripts/Thirdparty/DataTables/DataTables-1.10.16/css/dataTables.bootstrap.css" rel="stylesheet" />
+
+<h2>Kitchen Order Details</h2>
+
+<div class="col-12">
+    @*<div class="row">
+            <button id="newMenubtn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#mdlMenu">Create new Menu</button>
+            <button id="newMenuItembtn" type="button" class="btn btn-primary" data-toggle="modal" data-target="#mdlMenuItem">Create new Menu Item</button>
+        </div><br />*@
+    <div class="row">
+        <div class="panel panel-primary">
+            <div class="panel-heading">All Orders</div>
+            <div class="panel-body">
+                <table id="tblOrder" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <td>Order Type</td>
+                            <td>Order Details</td>
+                            <td>Order Status</td>
+                            <td>Total Price</td>
+                            <td>Pick-Up Time</td>
+                            <td>Date Created</td>
+                            <td>Total Preparation Time in Minutes</td>
+                            <td>Actions</td>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/Thirdparty/DataTables/datatables.min.js"></script>
+<script src="~/Scripts/Thirdparty/DataTables/DataTables-1.10.16/js/dataTables.bootstrap.js"></script>
+
+<script>
+    //var eOrderStatus = {
+    //    Pending: 1,
+    //    Canceled: 2,
+    //    Completed: 3
+    //};
+
+    //var eOrderType = {
+    //    Phone: 1,
+    //    Online: 2,
+    //    OnSite: 3
+    //};
+
+    var menuItems = [];
+
+    $(document).ready(function () {
+        getAllOrders();
+    });
+
+    function setupCountdown(dateCreated, totalPreparationTimeInMinutes) {
+        var a = 1000;
+        window.setInterval(function () {
+            console.log(a - 1);
+        }, 10000);
+    };
+
+    function getAllOrders() {
+        $.ajax({
+            type: "GET",
+            url: "/API/Order/GetAllOrderDetails/",
+            dataType: "json",
+            success: function (data) {
+                data = JSON.parse(data);
+                console.log(data);
+                menuItems = data.MenuItems;
+                populateOrderDetails(data.Orders);
+            }
+        });
+    };
+
+    function populateOrderDetails(orders) {
+        var table = $('#tblOrder').DataTable({
+            data: orders,
+            columns: [
+                {
+                    data: "OrderType.Name",
+                },
+                {
+                    data: "OrderID",
+                    render: function (data, type, row, meta) {
+                        var orderMenuItems = row.OrderMenuItems;
+                        var div = $('<div></div>');
+                        _.each(orderMenuItems, function (o) {
+                            var menuItem = _.findWhere(menuItems, { MenuItemID: o.MenuItemID });
+                            var p = $('<p></p>').text(menuItem.Name + ' - $' + menuItem.Price + ' (x ' + o.Quntity + ')');
+                            $('<br />').appendTo(p);
+                            p.appendTo(div);
+                        });
+                        return div.html();
+                    }
+                },
+                {
+                    data: "OrderStatu.Name",
+                },
+                {
+                    data: "TotalPrice",
+                },
+                {
+                    data: "PickUpTime",
+                    render: function (data) {
+                        if (data == null) {
+                            return '<span></span>';
+                        }
+                        else {
+                            return '<span>' + moment(data).format('hh:mm a') + '</span>';
+                        }
+                    },
+                },
+                {
+                    data: "DateCreated",
+                    title: "Date Created",
+                    render: function (data) {
+                        return '<span>' + moment(data).format('DD/MM/YYYY hh:mm a') + '</span>';
+                    },
+                },
+                {
+                    data: "TotalPreparationTimeInMinutes",
+                },
+                {
+                    data: "OrderID",
+                    title: "Action",
+                    render: function (data, type, row, meta) {
+                        var orderStatusID = row.OrderStatusID;
+                        switch (orderStatusID) {
+                            case eOrderStatus.Canceled:
+                            case eOrderStatus.Completed:
+                                return "<span></span>";
+                                break;
+                            case eOrderStatus.Pending:
+                                return '<a class="btn btn-danger cancel-order" data-orderid="' + data + '" style="margin-right:5px;"><span class="glyphicon glyphicon-remove"></span></a>' +
+                                    '<a class="btn btn-success complete-order" data-orderid="' + data + '"><span class="glyphicon glyphicon-ok"></span></a>';
+                                break;
+                            default:
+                                return "<span></span>";
+                        }
+                    }
+                },
+
+            ],
+            destroy: true,
+        });
+        $('#tblOrder tbody').on('click', 'a.cancel-order', function () {
+            var closestRow = $(this).closest('tr');
+            var rowData = table.row(closestRow).data();
+
+            console.log("cancel", rowData);
+
+            var request = {
+                OrderID: rowData.OrderID,
+                OrderStatusID: eOrderStatus.Canceled
+            };
+            updateOrder(request);
+        });
+
+        $('#tblOrder tbody').on('click', 'a.complete-order', function () {
+            var closestRow = $(this).closest('tr');
+            var rowData = table.row(closestRow).data();
+
+            console.log("complete", rowData);
+
+            var request = {
+                OrderID: rowData.OrderID,
+                OrderStatusID: eOrderStatus.Completed
+            };
+            updateOrder(request);
+        });
+    };
+
+    function updateOrder(request) {
+        $.ajax({
+            type: "POST",
+            url: "/API/Order/UpdateOrderStatus/",
+            data: { '': JSON.stringify(request) },
+            dataType: "json",
+            success: function (msg) {
+                var data = JSON.parse(msg);
+                notie.alert({ text: data.MessageString });
+
+                getAllOrders();
+
+                $('#mdlMenu').modal('hide');
+            },
+            error: function (data) {
+                console.log(data);
+            },
+        });
+    }
+</script>

@@ -1,0 +1,46 @@
+﻿@model CuddlyWombat.Models.CustomerRegistration
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Registration";
+    var message = Html.ValidationMessage("");
+}
+
+
+
+<h2>Registration</h2>
+
+@using (Html.BeginForm())
+{
+    <p id="validationMessage" style="display:none;">
+        @Html.ValidationMessage("")
+    </p>
+    <div class="form-group">
+        @Html.LabelFor(u => u.Email)
+        @Html.TextBoxFor(u => u.Email)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(u => u.Password)
+        @Html.PasswordFor(u => u.Password)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(u => u.GivenName)
+        @Html.TextBoxFor(u => u.GivenName)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(u => u.Surname)
+        @Html.TextBoxFor(u => u.Surname)
+    </div>
+    <div>
+        <p>
+            <button type="submit">Register</button>
+        </p>
+    </div>
+}
+
+<script>
+
+    $(document).ready(function () {
+        console.log($('#validationMessage').text());
+        notie.alert({ text: $('#validationMessage').text() })
+    });
+</script>
